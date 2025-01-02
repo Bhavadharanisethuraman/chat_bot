@@ -1,5 +1,5 @@
 streamlit
-farm-haystack[ocr,preprocessing,sql,faiss]
+farm-haystack
 pandas
 numpy
 scikit-learn
