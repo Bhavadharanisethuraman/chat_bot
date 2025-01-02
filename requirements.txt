@@ -7,9 +7,7 @@ torch
 transformers
 sentence-transformers
 nltk
-spacy
-spacy-model-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0.tar.gz
-fastapi
-uvicorn
-elasticsearch
-gunicorn
+spacy==3.8.3
+spacy-model-en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0.tar.gz
+
+
