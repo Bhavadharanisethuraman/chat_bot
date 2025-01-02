@@ -8,6 +8,7 @@ transformers
 sentence-transformers
 nltk
 spacy
+spacy-model-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0.tar.gz
 fastapi
 uvicorn
 elasticsearch
