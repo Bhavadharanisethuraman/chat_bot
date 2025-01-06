@@ -1,7 +1,6 @@
 import streamlit as st
 from main import LoanChatbot
 import pandas as pd
-import time
 
 # Initialize the chatbot
 chatbot = LoanChatbot()
@@ -39,6 +38,7 @@ def get_chatbot_response(user_input):
         'reference2_occupation'
     ]
 
+    # If there's any field left to fill, ask the next question
     for field in fields:
         if field not in chatbot.user_data:
             prompt, validation_type = chatbot.get_next_prompt(field)
@@ -61,13 +61,13 @@ if user_input:
     # Show the chatbot response
     st.session_state.conversation.append(f"Chatbot: {next_question}")
 
-    # Optionally, handle file uploads
-    if len(st.session_state.conversation) > len(fields) + 1:
-        if chatbot.handle_document_upload()[0]:
-            st.session_state.conversation.append("Chatbot: Document received successfully.")
+# Handling document uploads after all fields are filled
+if len(chatbot.user_data) == len(fields):  # Ensure all fields are collected
+    if chatbot.handle_document_upload()[0]:
+        st.session_state.conversation.append("Chatbot: Document received successfully.")
 
 # Display the CSV link after the application is saved
-if len(st.session_state.conversation) > len(fields) + 1:
+if len(chatbot.user_data) == len(fields):
     df = pd.DataFrame([chatbot.user_data])
     df.to_csv("loan_applications.csv", index=False)
     st.session_state.conversation.append("Chatbot: Your details are saved successfully.")
