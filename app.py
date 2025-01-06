@@ -1,7 +1,6 @@
 import streamlit as st
 from main import LoanChatbot
 import pandas as pd
-import time
 
 # Initialize the chatbot
 chatbot = LoanChatbot()
@@ -56,16 +55,16 @@ if st.session_state.conversation:
 # User Input Section
 user_input = st.text_input("You:", "")
 if user_input:
-    st.session_state.conversation.append(f"You: {user_input}")
-    next_question = get_chatbot_response(user_input)
+    # Check if the user input is not a repeat of the last input
+    if len(st.session_state.conversation) > 1 and st.session_state.conversation[-2] != f"You: {user_input}":
+        st.session_state.conversation.append(f"You: {user_input}")
+        next_question = get_chatbot_response(user_input)
 
-    # Show the chatbot response
-    st.session_state.conversation.append(f"Chatbot: {next_question}")
+        # Show the chatbot response immediately
+        st.session_state.conversation.append(f"Chatbot: {next_question}")
 
-    # Optionally, handle file uploads
-    if len(chatbot.user_data) >= len(fields):
-        if chatbot.handle_document_upload()[0]:
-            st.session_state.conversation.append("Chatbot: Document received successfully.")
+        # Refresh UI to show new question after user input
+        st.experimental_rerun()  # Re-run the script to trigger UI update immediately
 
 # Display the CSV link after the application is saved
 if len(chatbot.user_data) >= len(fields):
