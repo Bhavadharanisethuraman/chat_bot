@@ -1,8 +1,9 @@
 streamlit
+transformers
+tokenizers==0.14.1
 pandas
 torch
-transformers
-tokenizers==0.13.3 --only-binary :all:
+
 
 
 
