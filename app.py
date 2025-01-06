@@ -37,14 +37,17 @@ if "next_question" not in st.session_state:
 def get_chatbot_response(user_input):
     current_field = st.session_state.current_field
 
-    # Validate and save the response for the current field
+    # Save the response for the current field without validation for phone
     if current_field:
-        extracted_features = chatbot.extract_features(user_input)
-        if current_field in extracted_features:
-            st.session_state.user_data[current_field] = extracted_features[current_field]
+        if current_field == "phone":
+            st.session_state.user_data[current_field] = user_input  # Accept any input for phone
         else:
-            # Invalid input, repeat the same question
-            return f"Invalid input for {current_field}. {chatbot.get_next_prompt(current_field)[0]}"
+            extracted_features = chatbot.extract_features(user_input)
+            if current_field in extracted_features:
+                st.session_state.user_data[current_field] = extracted_features[current_field]
+            else:
+                # Invalid input, repeat the same question
+                return f"Invalid input for {current_field}. {chatbot.get_next_prompt(current_field)[0]}"
 
     # Check for the next field to fill
     for field in st.session_state.fields:
