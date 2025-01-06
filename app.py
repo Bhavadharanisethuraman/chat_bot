@@ -15,39 +15,48 @@ st.write(chatbot.generate_greeting("start"))
 # Initialize the session state to store user responses and conversation
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
-
-# Define fields globally
-fields = [
-    'name', 'phone', 'email', 'loan_purpose', 'income', 'dob',
-    'occupation', 'address', 'loan_amount', 'promotion_applied',
-    'how_heard', 'marital_status', 'whatsapp_opt_in', 'employer_name',
-    'self_employed', 'additional_income', 'commitments', 'declaration',
-    'reference1_name', 'reference1_relation', 'reference1_address',
-    'reference1_contact', 'reference1_occupation', 'reference2_name',
-    'reference2_relation', 'reference2_address', 'reference2_contact',
-    'reference2_occupation'
-]
+if "user_data" not in st.session_state:
+    st.session_state.user_data = {}  # Store user responses here
+if "current_field" not in st.session_state:
+    st.session_state.current_field = None  # Track the current question being asked
+if "fields" not in st.session_state:
+    st.session_state.fields = [
+        'name', 'phone', 'email', 'loan_purpose', 'income', 'dob',
+        'occupation', 'address', 'loan_amount', 'promotion_applied',
+        'how_heard', 'marital_status', 'whatsapp_opt_in', 'employer_name',
+        'self_employed', 'additional_income', 'commitments', 'declaration',
+        'reference1_name', 'reference1_relation', 'reference1_address',
+        'reference1_contact', 'reference1_occupation', 'reference2_name',
+        'reference2_relation', 'reference2_address', 'reference2_contact',
+        'reference2_occupation'
+    ]
 
 # Function to handle user input and chatbot responses
 def get_chatbot_response(user_input):
-    # Extract features from the user input
-    extracted_features = chatbot.extract_features(user_input)
+    # Check if we are processing a specific field
+    current_field = st.session_state.current_field
 
-    # Update user data in chatbot
-    for key, value in extracted_features.items():
-        if value:
-            chatbot.user_data[key] = value
+    # Validate and save the response for the current field
+    if current_field:
+        extracted_features = chatbot.extract_features(user_input)
+        if current_field in extracted_features:
+            st.session_state.user_data[current_field] = extracted_features[current_field]
+        else:
+            # If invalid input, ask the same question again
+            return f"Invalid input for {current_field}. {chatbot.get_next_prompt(current_field)[0]}"
 
-    # Show the next question based on the field to be filled
-    for field in fields:
-        if field not in chatbot.user_data:
+    # Check for the next field to be filled
+    for field in st.session_state.fields:
+        if field not in st.session_state.user_data:
+            st.session_state.current_field = field
             prompt, validation_type = chatbot.get_next_prompt(field)
-            st.session_state.conversation.append(f"Chatbot: {prompt}")
-            return prompt  # Return the question to ask next
+            return prompt
 
-    return "All required details are collected!"
+    # All fields are collected
+    st.session_state.current_field = None
+    return "All required details are collected! Your application is complete."
 
-# Get and display the conversation
+# Display the conversation
 if st.session_state.conversation:
     for message in st.session_state.conversation:
         st.write(message)
@@ -55,25 +64,27 @@ if st.session_state.conversation:
 # User Input Section
 user_input = st.text_input("You:", "")
 if user_input:
-    # Check if the user input is not a repeat of the last input
-    if len(st.session_state.conversation) > 1 and st.session_state.conversation[-2] != f"You: {user_input}":
-        st.session_state.conversation.append(f"You: {user_input}")
-        next_question = get_chatbot_response(user_input)
+    # Append user's response to the conversation
+    st.session_state.conversation.append(f"You: {user_input}")
 
-        # Show the chatbot response immediately
-        st.session_state.conversation.append(f"Chatbot: {next_question}")
+    # Get chatbot's response
+    next_question = get_chatbot_response(user_input)
 
-        # Refresh UI to show new question after user input
-        st.experimental_rerun()  # Re-run the script to trigger UI update immediately
+    # Append chatbot's response to the conversation
+    st.session_state.conversation.append(f"Chatbot: {next_question}")
 
-# Display the CSV link after the application is saved
-if len(chatbot.user_data) >= len(fields):
-    df = pd.DataFrame([chatbot.user_data])
-    df.to_csv("loan_applications.csv", index=False)
-    st.session_state.conversation.append("Chatbot: Your details are saved successfully.")
-    st.download_button(
-        label="Download Loan Application CSV",
-        data=df.to_csv(index=False),
-        file_name="loan_application.csv",
-        mime="text/csv"
-    )
+    # If application is complete, save the data to a CSV
+    if next_question == "All required details are collected! Your application is complete.":
+        df = pd.DataFrame([st.session_state.user_data])
+        df.to_csv("loan_applications.csv", index=False)
+        st.session_state.conversation.append("Chatbot: Your details are saved successfully.")
+        st.session_state.conversation.append("Chatbot: Download your application details below:")
+        st.download_button(
+            label="Download Loan Application CSV",
+            data=df.to_csv(index=False),
+            file_name="loan_application.csv",
+            mime="text/csv"
+        )
+
+    # Refresh UI to show new question
+    st.experimental_rerun()
