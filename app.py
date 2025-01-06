@@ -64,22 +64,25 @@ if st.session_state.conversation:
 
 # User Input Section
 placeholder = st.empty()  # Create a placeholder for the input widget
-with placeholder:
-    user_input = st.text_input("You:", key="user_input")
 
-if st.session_state.get("user_input"):
+# Use a unique key for each text input widget
+unique_key = f"user_input_{len(st.session_state.conversation)}"
+with placeholder:
+    user_input = st.text_input("You:", key=unique_key)
+
+if user_input:
     # Append user's response to the conversation
-    st.session_state.conversation.append(f"You: {st.session_state.user_input}")
+    st.session_state.conversation.append(f"You: {user_input}")
 
     # Get chatbot's next response
-    next_question = get_chatbot_response(st.session_state.user_input)
+    next_question = get_chatbot_response(user_input)
 
     # Append chatbot's response to the conversation
     st.session_state.conversation.append(f"Chatbot: {next_question}")
 
-    # Clear the input field by re-creating it
-    placeholder.empty()  # Remove the old text input
-    placeholder.text_input("You:", key="user_input")  # Recreate it
+    # Clear the input field by recreating it
+    placeholder.empty()
+    placeholder.text_input("You:", key=f"user_input_{len(st.session_state.conversation)}")
 
     # If the application is complete, save the data to a CSV file
     if next_question == "All required details are collected! Your application is complete.":
