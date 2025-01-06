@@ -1,6 +1,7 @@
 import streamlit as st
 from main import LoanChatbot
 import pandas as pd
+import time
 
 # Initialize the chatbot
 chatbot = LoanChatbot()
@@ -16,6 +17,18 @@ st.write(chatbot.generate_greeting("start"))
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
 
+# Define fields globally
+fields = [
+    'name', 'phone', 'email', 'loan_purpose', 'income', 'dob',
+    'occupation', 'address', 'loan_amount', 'promotion_applied',
+    'how_heard', 'marital_status', 'whatsapp_opt_in', 'employer_name',
+    'self_employed', 'additional_income', 'commitments', 'declaration',
+    'reference1_name', 'reference1_relation', 'reference1_address',
+    'reference1_contact', 'reference1_occupation', 'reference2_name',
+    'reference2_relation', 'reference2_address', 'reference2_contact',
+    'reference2_occupation'
+]
+
 # Function to handle user input and chatbot responses
 def get_chatbot_response(user_input):
     # Extract features from the user input
@@ -27,18 +40,6 @@ def get_chatbot_response(user_input):
             chatbot.user_data[key] = value
 
     # Show the next question based on the field to be filled
-    fields = [
-        'name', 'phone', 'email', 'loan_purpose', 'income', 'dob',
-        'occupation', 'address', 'loan_amount', 'promotion_applied',
-        'how_heard', 'marital_status', 'whatsapp_opt_in', 'employer_name',
-        'self_employed', 'additional_income', 'commitments', 'declaration',
-        'reference1_name', 'reference1_relation', 'reference1_address',
-        'reference1_contact', 'reference1_occupation', 'reference2_name',
-        'reference2_relation', 'reference2_address', 'reference2_contact',
-        'reference2_occupation'
-    ]
-
-    # If there's any field left to fill, ask the next question
     for field in fields:
         if field not in chatbot.user_data:
             prompt, validation_type = chatbot.get_next_prompt(field)
@@ -61,13 +62,13 @@ if user_input:
     # Show the chatbot response
     st.session_state.conversation.append(f"Chatbot: {next_question}")
 
-# Handling document uploads after all fields are filled
-if len(chatbot.user_data) == len(fields):  # Ensure all fields are collected
-    if chatbot.handle_document_upload()[0]:
-        st.session_state.conversation.append("Chatbot: Document received successfully.")
+    # Optionally, handle file uploads
+    if len(chatbot.user_data) >= len(fields):
+        if chatbot.handle_document_upload()[0]:
+            st.session_state.conversation.append("Chatbot: Document received successfully.")
 
 # Display the CSV link after the application is saved
-if len(chatbot.user_data) == len(fields):
+if len(chatbot.user_data) >= len(fields):
     df = pd.DataFrame([chatbot.user_data])
     df.to_csv("loan_applications.csv", index=False)
     st.session_state.conversation.append("Chatbot: Your details are saved successfully.")
